@@ -1,4 +1,15 @@
 from grief_rag.models import Scenario
+import pytest
+
+
+def test_post_init_raises_on_unknown_ranking_key():
+    with pytest.raises(ValueError, match="rankings keys not found"):
+        Scenario(
+            id="gl_001",
+            description="test",
+            responses={"A": "resp_a"},
+            rankings={"Z": 1},
+        )
 
 
 def test_top_responses_with_rankings():
