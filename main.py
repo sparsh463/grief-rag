@@ -18,8 +18,10 @@ def get_or_build_index():
         matrix, ids = load_index(INDEX_PATH)
     else:
         print("Building index (first run, may take ~30s)...")
-        documents = enrich_scenarios(scenarios)
         ids = [s.id for s in scenarios]
+        documents = enrich_scenarios(scenarios)
+        # ids and documents are built from the same ordered list — positional alignment is guaranteed
+        assert len(ids) == len(documents), "enrich_scenarios must return one doc per scenario"
         matrix, ids = build_index(documents, ids)
         save_index(matrix, ids, INDEX_PATH)
         print(f"Index saved to {INDEX_PATH}")
