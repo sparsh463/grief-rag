@@ -12,19 +12,25 @@ from grief_rag.enrich import enrich_scenarios
 from grief_rag.index import build_index, save_index, load_index, search
 from grief_rag.query import build_context_block, generate_response
 from grief_rag.load_optimal import load_optimal_responses, apply_optimal_responses
+from grief_rag.load_rankings import load_rankings, apply_rankings
 
 DATASET_PATH = Path("/Users/SPARSH/Downloads/grief_loss_dataset.md")
 INDEX_PATH = Path("/Users/SPARSH/grief-rag/optimal_index.npz")
 OPTIMAL_PATH = Path("/Users/SPARSH/grief-rag/optimal_responses.json")
+RANKINGS_PATH = Path("/Users/SPARSH/grief-rag/rankings.json")
 MODEL = "claude-sonnet-4-6"
 
 
 def get_or_build_index():
     scenarios = parse_file(DATASET_PATH)
+    # Apply rankings first (fallback for scenarios without optimal responses)
+    if RANKINGS_PATH.exists():
+        apply_rankings(scenarios, load_rankings(RANKINGS_PATH))
+    # Then overlay optimal responses where available (overrides rankings)
     optimal = load_optimal_responses(OPTIMAL_PATH)
     apply_optimal_responses(scenarios, optimal)
-    filled = sum(1 for s in scenarios if s.responses)
-    print(f"Optimal responses loaded: {filled}/50 scenarios have responses.")
+    filled = sum(1 for sid, v in optimal.items() if v)
+    print(f"Optimal responses loaded: {filled}/50 scenarios. Remaining use ranked fallback.")
     scenario_map = {s.id: s for s in scenarios}
 
     if INDEX_PATH.exists():
