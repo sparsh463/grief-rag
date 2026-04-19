@@ -4,13 +4,18 @@ from grief_rag.parse import parse_file
 from grief_rag.enrich import enrich_scenarios
 from grief_rag.index import build_index, save_index, load_index, search
 from grief_rag.query import build_context_block, generate_response
+from grief_rag.load_rankings import load_rankings, apply_rankings
 
 DATASET_PATH = Path("/Users/SPARSH/Downloads/grief_loss_dataset.md")
 INDEX_PATH = Path("/Users/SPARSH/grief-rag/grief_index.npz")
+RANKINGS_PATH = Path("/Users/SPARSH/grief-rag/rankings.json")
 
 
 def get_or_build_index():
     scenarios = parse_file(DATASET_PATH)
+    if RANKINGS_PATH.exists():
+        apply_rankings(scenarios, load_rankings(RANKINGS_PATH))
+        print("Rankings loaded.")
     scenario_map = {s.id: s for s in scenarios}
 
     if INDEX_PATH.exists():
